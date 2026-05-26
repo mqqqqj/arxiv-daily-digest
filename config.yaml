@@ -1,0 +1,42 @@
+# arXiv Daily Digest — 配置文件
+# 修改此文件后推送即可调整你的关注领域
+
+# 研究兴趣（自然语言描述，供 LLM 理解并评分）
+research_interests:
+  - "智能体记忆机制（Agent Memory）：智能体记忆系统、记忆存储、记忆检索、记忆更新"
+  - "向量检索（Vector Search）：向量数据库、ANN 近似最近邻搜索、embedding 模型、多向量检索"
+
+# arXiv 分类（具体拉取哪些分类的最新论文）
+arxiv_categories:
+  - cs.DB     # 数据库
+  - cs.AI     # 人工智能
+  - cs.DC     # 分布式/并行/集群计算（计算机系统）
+  - cs.IR     # 信息检索
+
+# 关键词（用于在 arXiv 搜索结果中进一步过滤，不区分大小写）
+keywords:
+  - agent memory
+  - vector database
+  - vector search
+  - ANN search
+  - approximate nearest neighbor
+
+# 搜索参数
+days_back: 1          # 往回查几天
+max_papers: 10        # 最多抓多少篇
+
+# DeepSeek API 配置（通过 Anthropic SDK 调用）
+deepseek:
+  api_key: "${DEEPSEEK_AUTH_TOKEN}"   # 从环境变量读取
+  model: "deepseek-v4-pro"
+  base_url: "https://api.deepseek.com/anthropic"
+  max_papers_to_summarize: 6      # 每次最多让 LLM 总结几篇（控制 API 调用量）
+
+# 邮件配置（163 邮箱）
+email:
+  smtp_server: "smtp.163.com"
+  port: 465                        # 163 邮箱使用 SSL
+  sender: "${EMAIL_SENDER}"         # 发件邮箱
+  password: "${EMAIL_PASSWORD}"     # SMTP 授权码
+  receiver: "${EMAIL_RECEIVER}"     # 收件邮箱
+  subject_prefix: "[学术日报] "  # 邮件主题前缀
