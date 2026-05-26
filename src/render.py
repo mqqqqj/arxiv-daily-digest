@@ -73,7 +73,7 @@ def render_html(papers: list[Paper], date: datetime) -> str:
 <div class="container">
     <div class="header">
         <h1>arXiv Daily Digest</h1>
-        <div class="date">{date.strftime('%Y-%m-%d')} · agent memory & vector retrieval</div>
+        <div class="date">{date.strftime('%Y-%m-%d')} · agent memory & vector search</div>
     </div>
     <div class="stats">
         <div class="stat"><div class="num">{len(sorted_papers)}</div><div class="label">总论文</div></div>
