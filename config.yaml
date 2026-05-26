@@ -8,10 +8,12 @@ research_interests:
 
 # arXiv 分类（具体拉取哪些分类的最新论文）
 arxiv_categories:
-  - cs.DB     # 数据库
   - cs.AI     # 人工智能
+  - cs.CL     # 计算语言学 / NLP
+  - cs.DB     # 数据库
   - cs.DC     # 分布式/并行/集群计算（计算机系统）
   - cs.IR     # 信息检索
+  - cs.LG     # 机器学习
 
 # 关键词（用于在 arXiv 搜索结果中进一步过滤，不区分大小写）
 keywords:
@@ -20,10 +22,12 @@ keywords:
   - vector search
   - ANN search
   - approximate nearest neighbor
+  - embedding
+  - RAG
 
 # 搜索参数
-days_back: 1          # 往回查几天
-max_papers: 10        # 最多抓多少篇
+days_back: 2          # 往回查几天
+max_papers: 20        # 最多抓多少篇
 
 # DeepSeek API 配置（通过 Anthropic SDK 调用）
 deepseek:

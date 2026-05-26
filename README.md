@@ -1,6 +1,6 @@
 # arXiv Daily Digest
 
-自动抓取 arXiv 最新论文，用 LLM 相关+摘要，每日邮件推送到邮箱。
+自动抓取 arXiv 最新论文，用 LLM 提取相关文章并总结摘要，每日邮件推送到邮箱。
 
 ## 功能
 
@@ -48,7 +48,7 @@ python main.py --skip-summarize
 | `DEEPSEEK_AUTH_TOKEN` | DeepSeek API 密钥 |
 | `EMAIL_SENDER` | 发件邮箱地址 |
 | `EMAIL_PASSWORD` | 邮箱 SMTP 授权码（非登录密码） |
-| `EMAIL_RECEIVER` | 收件邮箱地址 |
+| `EMAIL_RECEIVER` | 收件邮箱地址（可与发件邮箱相同） |
 
 本地运行时可通过 shell 环境变量或 `.env` 文件传入。
 

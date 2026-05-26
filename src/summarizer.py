@@ -8,13 +8,12 @@ from .fetcher import Paper
 
 SCREEN_PROMPT = """你是学术论文评审专家。下面有若干篇 arXiv 论文的标题。
 根据每篇论文的标题，评估它与以下研究兴趣的相关性，给出 1-10 的整数评分：
-   - 智能体记忆机制：智能体记忆系统、记忆存储、记忆检索、记忆更新
-   - 向量检索：向量数据库、ANN 近似最近邻搜索、embedding 模型、多向量检索
+{interests}
 与上述方向直接相关的论文给 7-10 分，部分相关 4-6 分，不相关 1-3 分。
 只输出 JSON，格式如下，不要任何其他文字：
 ```json
 [
-  {"arxiv_id": "论文ID", "relevance_score": 8},
+  {{"arxiv_id": "论文ID", "relevance_score": 8}},
   ...
 ]
 ```
@@ -25,24 +24,27 @@ SCREEN_PROMPT = """你是学术论文评审专家。下面有若干篇 arXiv 论
 
 PROMPT = """你是学术论文评审专家。下面有若干篇 arXiv 论文的标题和摘要。
 你的任务：
-1. 对每篇论文，用中文写一段详细的摘要（150-300字），必须包含以下三个部分：
+1. 对每篇论文，用中文写摘要（150-300字，禁止用英文），必须包含以下三部分：
    - 研究问题：这篇论文要解决什么核心问题？
    - 方法：作者用了什么技术方案、模型架构或算法？
    - 贡献/发现：主要结论或创新点是什么？
 2. 根据论文与以下研究兴趣的相关性，给出 1-10 的整数评分：
-   - 智能体记忆机制：智能体记忆系统、记忆存储、记忆检索、记忆更新
-   - 向量检索：向量数据库、ANN 近似最近邻搜索、embedding 模型、多向量检索
+{interests}
    与上述方向直接相关的论文给 7-10 分，部分相关 4-6 分，不相关 1-3 分。
 3. 只输出 JSON，格式如下，不要任何其他文字：
 ```json
 [
-  {"arxiv_id": "论文ID", "summary_cn": "中文摘要（150-300字，包含问题/方法/贡献三个部分）", "relevance_score": 8},
+  {{"arxiv_id": "论文ID", "summary_cn": "中文摘要（150-300字，包含问题/方法/贡献三个部分）", "relevance_score": 8}},
   ...
 ]
 ```
 
 论文列表：
 """
+
+
+def _build_interests_text(interests: list[str]) -> str:
+    return "\n".join(f"   - {item}" for item in interests)
 
 
 def _parse_json_response(raw: str) -> list[dict]:
@@ -69,10 +71,14 @@ def _backfill_scores(papers: list[Paper], score_map: dict[str, int]) -> None:
                 break
 
 
-def screen_papers(client: Anthropic, model: str, papers: list[Paper]) -> list[Paper]:
+def screen_papers(client: Anthropic, model: str, papers: list[Paper],
+                  interests: list[str] | None = None) -> list[Paper]:
     """标题初筛：用 LLM 对所有论文的标题快速打分，不生成摘要。"""
     if not papers:
         return papers
+
+    if interests is None:
+        interests = []
 
     items = []
     for i, p in enumerate(papers):
@@ -86,12 +92,17 @@ def screen_papers(client: Anthropic, model: str, papers: list[Paper]) -> list[Pa
         model=model,
         max_tokens=2048,
         temperature=0.1,
-        system=SCREEN_PROMPT,
+        system=SCREEN_PROMPT.format(interests=_build_interests_text(interests)),
         messages=[{"role": "user", "content": papers_text}],
+        thinking={"type": "disabled"},
     )
 
     text_blocks = [b for b in response.content if b.type == "text"]
+    if not text_blocks:
+        print(f"  LLM 未返回文本: {response.content}")
+        return papers
     raw = text_blocks[0].text.strip()
+    print(f"  LLM 响应前 200 字符: {raw[:200]}")
     results = _parse_json_response(raw)
 
     score_map = {r["arxiv_id"]: r.get("relevance_score", 5) for r in results}
@@ -99,10 +110,14 @@ def screen_papers(client: Anthropic, model: str, papers: list[Paper]) -> list[Pa
     return papers
 
 
-def summarize(client: Anthropic, model: str, papers: list[Paper]) -> list[Paper]:
+def summarize(client: Anthropic, model: str, papers: list[Paper],
+              interests: list[str] | None = None) -> list[Paper]:
     """批量调用 DeepSeek 生成详细摘要和评分。"""
     if not papers:
         return papers
+
+    if interests is None:
+        interests = []
 
     # 构建论文列表文本
     items = []
@@ -122,12 +137,17 @@ def summarize(client: Anthropic, model: str, papers: list[Paper]) -> list[Paper]
         model=model,
         max_tokens=8192,
         temperature=0.3,
-        system=PROMPT,
+        system=PROMPT.format(interests=_build_interests_text(interests)),
         messages=[{"role": "user", "content": papers_text}],
+        thinking={"type": "disabled"},
     )
 
     text_blocks = [b for b in response.content if b.type == "text"]
+    if not text_blocks:
+        print(f"  LLM 未返回文本: {response.content}")
+        return papers
     raw = text_blocks[0].text.strip()
+    print(f"  LLM 响应前 200 字符: {raw[:200]}")
     results = _parse_json_response(raw)
 
     # 回填结果

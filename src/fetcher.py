@@ -76,6 +76,8 @@ def fetch_papers(
     papers = list(all_papers.values())
 
     if keywords:
+        before = len(papers)
         papers = [p for p in papers if _matches_keywords(p, keywords)]
+        print(f"  关键词过滤: {before} -> {len(papers)} 篇")
 
     return sorted(papers, key=lambda p: p.published, reverse=True)

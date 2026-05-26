@@ -67,12 +67,13 @@ def main():
 
     # 2. 标题初筛：LLM 对所有论文按标题快速打分
     if not args.skip_summarize:
+        interests = config.get("research_interests", [])
         print("正在用 DeepSeek 对所有论文进行标题初筛...")
         client = Anthropic(
             api_key=config["deepseek"]["api_key"],
             base_url=config["deepseek"]["base_url"],
         )
-        screen_papers(client, config["deepseek"]["model"], papers)
+        screen_papers(client, config["deepseek"]["model"], papers, interests)
 
         # 按相关性排序，取前 N 篇做详细摘要
         limit = config["deepseek"].get("max_papers_to_summarize", 6)
@@ -81,20 +82,14 @@ def main():
 
         if to_summarize:
             print(f"筛选出 {len(to_summarize)} 篇相关论文，正在生成详细摘要...")
-            summarize(client, config["deepseek"]["model"], to_summarize)
+            summarize(client, config["deepseek"]["model"], to_summarize, interests)
 
-    # 3. 发送邮件
+    # 3. 发送邮件（只发送有摘要的论文）
     date = datetime.now(timezone.utc)
-    send_email(papers, config, date, dry_run=args.dry_run)
-
-    # 打印摘要
-    sorted_papers = sorted(papers, key=lambda p: p.relevance_score, reverse=True)
-    print(f"\n====== 今日学术日报 ======")
-    for p in sorted_papers[:5]:
-        print(f"  [{p.relevance_score}/10] {p.title[:80]}...")
-        if p.summary_cn:
-            print(f"        {p.summary_cn[:120]}...")
-        print()
+    digest_papers = [p for p in papers if p.summary_cn]
+    if not digest_papers:
+        digest_papers = papers  # 如果都没摘要，至少发所有论文
+    send_email(digest_papers, config, date, dry_run=args.dry_run)
 
 
 if __name__ == "__main__":
