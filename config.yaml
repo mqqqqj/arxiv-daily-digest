@@ -4,7 +4,7 @@
 # 研究兴趣（自然语言描述，供 LLM 理解并评分）
 research_interests:
   - "智能体记忆机制（Agent Memory）：智能体记忆系统、记忆存储、记忆检索、记忆更新"
-  - "向量检索（Vector Search）：向量数据库、ANN 近似最近邻搜索、embedding 模型、多向量检索"
+  - "向量检索（Vector Search）：向量数据库、ANNS、近似最近邻搜索、多向量检索"
 
 # arXiv 分类（具体拉取哪些分类的最新论文）
 arxiv_categories:
@@ -20,9 +20,8 @@ keywords:
   - agent memory
   - vector database
   - vector search
-  - ANN search
-  - approximate nearest neighbor
-  - embedding
+  - approximate nearest neighbor search
+  - multi-vector
   - RAG
 
 # 搜索参数
